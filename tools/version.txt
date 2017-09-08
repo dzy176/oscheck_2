@@ -1,0 +1,11 @@
+Instool3.0
+2016/1/13 rongjq@inspur.com
+1.only used for Inspur SA5212M4 and SA5112M4
+2.It needs linux shell command curl and instll
+3.functions:
+  1)outband get asset info,cpu/mem/hdd/raid3108/psu/fan/onboard netmac/pcie device
+  2)outband ldap and active-directory args's show and set
+  3)bmc's user/ip/sharelink/ntp args'show and set
+  4)bmc's fru show and set
+  5)outband or inband set or show bios items
+  6)open sol/ikvm download/ssh login bmc 

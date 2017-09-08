@@ -1,0 +1,132 @@
+#!/bin/bash
+power0=0x00
+power1=0x01
+###########################################################################################
+#######rongjq@inspur.com                 
+######2016-6-10
+#####PSU info On shuyu                         
+############################################################################################
+function data_processor()
+{
+  psu_info=`ipmitool $1 raw 0x3a 0x71 $2` 2>/dev/null
+#  if  [ `echo $psu_info |wc -w` -eq 79 ] || [ `echo $psu_info |wc -w` -eq 87 ] 
+   if [ '1' = '1' ] 
+   then
+#      echo $psu_info
+    #####################################################postion#####################
+      power=`echo $psu_info|awk '{print $1}'`
+      power=${power:1:1}
+     ##################################################exists ??######################
+      exis=`echo $psu_info|awk '{print $2"x"}'`
+      if [ "$exis" = "01x" ];
+          then 
+              exist="yes";
+          else 
+              exist="no";
+      fi
+     ################################################active-nomarl-stanby################
+       stats=`echo $psu_info|awk '{print $3"x"}'`
+       if [ "$stats" = "00x" ];
+          then
+              status="Normal";
+       elif [ "$stats" = "55x" ];
+          then 
+             status="Active"
+       elif [ "$stats" = "0ex" ];
+          then
+             status="Standby" 
+          else
+             status="error";
+       fi
+     #################################################temperature#########################
+     temp=`echo $psu_info|awk '{print $5$4}'`
+     ((temper=16#$temp))
+     ###############################################Out Power############################
+     Op=`echo $psu_info|awk '{print $7$6}'`
+     ((Opower=16#$Op))
+     ##############################################Input Power##########################
+     Ip=`echo $psu_info|awk '{print $15$14}'`
+     ((Ipower=16#$Ip))
+    ##############################################Input Volage##########################
+     Iv=`echo $psu_info|awk '{print $9$8}'`
+     ((Ivol=16#$Iv))     
+    ##############################################Error Status##########################
+     Eors=`echo $psu_info|awk '{print $12$13}'`
+     case $Eors in
+       0000)
+	 Errorstatus="ok"
+	;;
+       4828|0800|4928)
+	 Errorstatus="AC lost"
+	;;
+       ffff)
+	 Errorstatus="Pulled Out"
+ 	;;
+       *)
+	 Errorstatus="$Eors"
+	;;
+    esac
+    #############################################max power#############################
+     Mp=`echo $psu_info|awk '{print $17$16}'`
+     ((Maxpower=16#$Mp))
+   
+     #############################################Input Curr#############################
+     Ic=`echo $psu_info|awk '{print $19$18}'`
+     ((InputCurr=16#$Ic)) 
+     #############################################Out Curr#############################
+     Oc=`echo $psu_info|awk '{print $21$20}'`
+     ((OutputCurr=16#$Oc))
+     OutputCurr=`echo "scale=2;$OutputCurr/100"|bc`
+    ##############################################Firem ware############################
+     declare -u Fw 
+     Fw=`echo $psu_info|awk '{for(i=22;i<29;i++)print " "$i;}'`
+     firmware="\\x"`echo $Fw|sed 's/ /\\\x/g'`
+     firmware=`echo -e "$firmware"`
+   ###############################################model############################  
+     declare -u Mod 
+     Mod=`echo $psu_info|awk '{for(i=30;i<46;i++)print " "$i;}'`
+     Modle="\\x"`echo $Mod|sed 's/ /\\\x/g'`
+     Modle=`echo -e "$Modle"`
+  ###############################################manufacture############################  
+     declare -u Mac 
+     Mac=`echo $psu_info|awk '{for(i=46;i<62;i++)print " "$i;}'`
+     Manufacture="\\x"`echo $Mac|sed 's/ /\\\x/g'`
+     Manufacture=`echo -e "$Manufacture"`
+   
+
+  ###############################################serialnum############################  
+     declare -u Sea 
+     Sea=`echo $psu_info|awk '{for(i=62;i<78;i++)print " "$i;}'`
+     Serial="\\x"`echo $Sea|sed 's/ /\\\x/g'`
+     Serial=`echo -e "$Serial"`
+ 
+     #echo  "$power;$exist;$status;$temper;$Opower;$Ipower;$Ivol;$Errorstatus;$Maxpower;$InputCurr;$OutputCurr;$firmware;$Modle;$Manufacture;$Serial"
+     if [ "x$exist" = "xyes" ]
+        then
+         # echo -e "power\tinsert\tstatus\tModle\tManufacture\tSerialnum\tFirmware\t$Maxpower\tInputPower(w) \tOutputPower(w)\tErrorstatus"
+          echo -e "$power\t$exist\t$status\t$Modle\t\t$Manufacture\t$Serial\t$firmware\t\t$Maxpower\t\t$Ipower\t\t$Opower\t\t$Errorstatus" 
+     else
+          echo -e "$power\t$exist"
+     fi
+  else
+    echo getdata error!
+  fi
+}
+
+
+#main()
+{
+ 
+# if [ ! $# -eq 0 ];then 
+# { 
+#   ipmitool  $* fru >/dev/null
+#   if [ ! $? -eq 0 ];then
+#    exit 0
+#   fi
+#  }
+#fi
+ echo -e "power\tinsert\tstatus\tModel\t\tManufacture\tSerialnum  \tFirmware\tMaxpower\tInputPower(w)\tOutputPower(w)\tErrorstatus"
+ data_processor "$*" $power0
+ data_processor "$*" $power1
+
+}

@@ -1,0 +1,42 @@
+ Product Name          : SA5212M4
+##############BIOS-BMC version info#####################
+BMC:4.11.0 BIOS:4.1.6 ME:3.1.3.30
+##############CPUinfo#####################
+cpu0 yes Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz 00000037 10 105
+cpu1 yes Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz 00000037 10 105
+##############Meminfo#####################
+CHA_0 yes Undefined 049E3500 DDR4 16GB 2133MHz
+CHA_1 no
+CHB_0 yes Undefined 045A0502 DDR4 16GB 2133MHz
+CHB_1 no
+CHC_0 yes Undefined 021B9401 DDR4 16GB 2133MHz
+CHC_1 no
+CHD_0 no
+CHD_1 no
+CHE_0 yes Undefined 05194901 DDR4 16GB 2133MHz
+CHE_1 no
+CHF_0 yes Undefined 051B4901 DDR4 16GB 2133MHz
+CHF_1 no
+CHG_0 yes Undefined 04A05E01 DDR4 16GB 2133MHz
+CHG_1 no
+CHH_0 no
+CHH_1 no
+##############Hddinfo#####################
+x12-3.5
+Disk0  :OK
+Disk1  :OK
+Disk2  :OK
+Disk3  :OK
+Disk4  :OK
+Disk5  :OK
+Disk6  :OK
+Disk7  :OK
+Disk8  :nodisk
+Disk9  :nodisk
+Disk10  :nodisk
+Disk11  :nodisk
+##############Net onboard mac info#####################
+	Manf	Dlink	Model		Mac			 LinkStatus
+NIC0	Intel     1 g      I350  	6c:92:bf:32:33:b8	 up
+NIC1	Intel     1 g      I350  	 6c:92:bf:32:33:b9	 down
+

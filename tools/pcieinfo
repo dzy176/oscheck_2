@@ -1,0 +1,204 @@
+#!/bin/bash
+###########################################################################################
+#######rongjq@inspur.com                 
+######2016-7-10
+#####PCIE slot device info on shuyu (no 3008 who onboard)
+############################################################################################
+function hextoasiic()
+{
+ Hex=`echo $*|awk '{for(i=1;i<=NF;i++)print " "$i;}'`
+ hexasiic="\\x"`echo $Hex|sed 's/ /\\\x/g'`
+ echo -e "$hexasiic"
+
+}
+function hextodec()
+{
+  ((dec=16#$1))  
+  echo $dec
+}
+
+function dectohex()
+{
+ hex=`echo "obase=16;$1"|bc`
+ echo 0x$hex
+}
+
+function pcieinfo_data()
+{
+  info=$*
+  #exist?
+  exist=`echo $info | awk '{print $5}'`
+  if [ "x$exist" = "x01" ] ;then
+     exist="yes"
+  else
+     exist="no"
+  fi
+ ##################################################################vendor####################################
+  vendor=`echo $info | awk '{print $7$6}'`
+  Vendor="0x$vendor"
+  
+  case $Vendor in
+      0x8086)
+        Vendor="Intel"
+       ;;
+      0x1000)
+        Vendor="LSI  "
+        ;;
+      0x9005)
+        Vendor="PMC  "
+         ;;
+      *)
+        Vendor="$Vendor"
+       ;;
+ esac
+
+
+ ##################################################################vendor####################################
+  device=`echo $info | awk '{print $9$8}'`
+  Device="0x$device"
+   case $Device in
+
+     #Raidcard or HBA card
+      0x005d)
+        Device="(9361-8i)3108Raid       "
+       ;;
+      0x005b)
+        Device="2208Raid       "
+       ;;
+      0x0097)
+       Device="3008HBA         "
+       ;;
+      0x0086)
+       Device="2308HBA          "
+       ;;
+      0x028d)
+        Device="8060Raid       "
+         ;;
+      0x0435)
+        Device="QAT-SSL       "
+          ;;
+     #NVME card
+
+      0x0953)
+        Device="Nvmex4+x4+x4+x4"
+        ;;
+
+     #Network Device#
+
+      0x10fb)
+       Device="82599ES         "
+       ;;
+      0x154d)
+        Device="X520           "
+         ;;
+      0x1572)
+        Device="X710	      "
+         ;;
+     #no in list#
+
+      *)
+        Device="$Device"
+       ;;
+ esac
+
+ 
+
+ ################################################################daikuan ######################################
+ daikuan=`echo $info | awk '{print $10}'`
+ daikuan="x`hextodec $daikuan`"
+ ################################################################sulv ######################################
+ sulv=`echo $info | awk '{print $11}'`
+ sulv="Gen`hextodec $sulv`"
+
+###############################################################siyin ######################################
+ micode=`echo $info | awk '{print $13}'`
+ siyin=`hextodec $micode`
+ ################################################################cpu######################################
+ cpu=`echo $info | awk '{print $14}'`
+ if [ "0x$cpu" = "0x80" ];then
+   Cpu="1"
+ else
+   Cpu="0"
+ fi
+ ################################################################model######################################
+ model=`echo $info | awk '{print $15}'`
+ model=`hextodec $model`
+ case $model in
+      0)
+        Model="x16     "
+       ;;
+      1) 
+        Model="X8+X16  "
+         ;;
+      2)
+        Model="X8+X8+X8"
+         ;;
+      3)
+        Model="None "
+        ;;
+      4)
+        Model="x8+x1   "
+        ;;
+      *)
+        Model="error   "
+       ;;
+ esac
+##############################################################################################################
+  ################################################################model######################################
+ sor=`echo $info | awk '{print $12}'`
+ sor=`hextodec $sor`
+ case $sor in
+      1)
+        sor="Strorage-Ctrl"
+       ;;
+      2)
+        sor="Network-Ctrl "
+         ;;
+      3)
+        sor="Display-Ctrl "
+         ;;
+      11)sor="Processor   "
+        ;;
+      *)
+        sor="error-$sor    "
+       ;;
+ esac
+
+
+ ##############################################################riser address ######################################
+ addr=`echo $info | awk '{print $16}'`
+ Using=`hextodec $addr`
+ if [ $Using -eq 0 ];then
+   riseaddr="Up"
+ elif [ $Using -eq 1 ];then
+   riseaddr="middle" 
+ elif [ $Using -eq 2 ];then
+   riseaddr="down"
+ else
+   riseaddr="none"
+ fi
+
+
+
+  if [  $exist = "no" ];then
+      echo $exist
+        
+  else
+    echo  $exist $sor $Vendor $Device PCIE$siyin\_CPU$Cpu $sulv\_$daikuan $Model #$riseaddr
+  fi
+ }
+
+i=0
+#main()
+maxnum=`ipmitool $* raw 0x3a 0x02 0x06 0xff 0xff|awk '{print $2}'`
+maxnum=`hextodec $maxnum`
+  pciei=`echo $maxnum | awk  -v p=$maxnum '{for(i=0;i<p;i++)print i" "}'`  
+     for pcie in $pciei
+          do
+            di=`dectohex $i`
+            echo -n "pcie$pcie "
+            pcieinfo=`ipmitool $* raw 0x3a 0x02 0x06 $di $di 2>/dev/null` 
+            pcieinfo_data $pcieinfo
+       #     echo "$pcieinfo"
+            i=$(($i+1))
+done

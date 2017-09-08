@@ -1,0 +1,51 @@
+#BIOS change-versionV3.0 2015-7
+0x00	:	Hyper Threading Technology	: 00 = Disable;01 = Enable
+0x05	:	Hardware Prefetcher		:00 = Disable;01 = Enable
+0x06	:	Adjacent Cache Prefetcher	:00 = Disable;01 = Enable
+0x07	:	DCU Streamer Prefetcher		:00 = Disable;01 = Enable
+0x08	:	DCU IP Prefetcher		:00 = Disable;01 = Enable
+0x0a	:	Direct Cache Access (DCA)	:00 = Disable;01 = Enable
+0x12	:	EIST(P-states)			:00 = Disable;01 = Enable
+0x13	:	Turbo Mode			:00 = Disable;01 = Enable
+0x16	:	Package C State limit		:00 = C0/C1 state;01 = C2 state;02 = C6(non Retention) state;03 = C6(Retention) state;07= no limit
+0x17	:	CPU C3 report			:00 = Disable;01 = Enable
+0x18	:	CPU C6 report			:00 = Disable;01 = Enable
+0x19	:	Enhanced Halt State (C1E)	:00 = Disable;01 = Enable
+0x1b	:	Energy Performance BIAS		:00 = Performance;07 = Balanced Performance;08 = Balanced Power;0F = Power
+0x1c	:	Memory Frequency		:00 = Auto;05 = 1333;07 = 1600;08 = 1800;09 = 1867;0A = 2000;0B = 2133;0C = 2200;0D = 2400;0E = 2600;0F = 2667;
+0x20	:	Numa				:00 = Disable;01 = Enable
+0x24	:	Memory Mode			:00 = Independent;01 = Mirror;02 = Lockstep Mode
+0x2a	:	Intel VT for Directed I/O (Vt-d):01 = Enable;00 = Disable
+0x2b	:	Network				:00 = Do not launch;01 = UEFI;02= Legacy
+0x2d	:	Serial Port Console redirection	:01 = Enabled;00 = Disabled
+0x2e	:	Boot Mode			:00 = Performance Optimized;01 = Power Optimized
+0x2f	:	P-STATE Coordination	 	:00=HW_ALL;01=SW_ALL;02=SW_ANY; 
+0x31	:	SR-IOV				:01 = Enabled;00 = Disabled
+0x60	:	BootOptionFilter		:00=UEFIandLegacy;01=LegacyOnly;02=UefiOnly
+0x61  	:	Network Stack			:01=Enabled;00=Disabled
+0x64	:	Monitor/Mwait Support		:01 = Enabled;00 = Disabled
+0x65	:	Energy Performance Tuning 	:01 = BIOS;00 = OS
+0x67	:	OnBoard I350 NIC1 Control	:01 = Enabled;00 = Disabled
+0x68	:	OnBoard I350 NIC1 Rom		:01 = Enabled;00 = Disabled 
+0x69	:	OnBoard I350 NIC2 Control	:01 = Enabled;00 = Disabled 
+0x6a	:	OnBoard I350 NIC2 Rom		:01 = Enabled;00 = Disabled
+0x6b	:	Onboard 82599ES NIC1 Control	:01 = Enabled;00 = Disabled 
+0x6c	:	Onboard 82599ES NIC1 ROM		:01 = Enabled;00 = Disabled 
+0x6d	:	Onboard 82599ES NIC2 Control	:01 = Enabled;00 = Disabled 
+0x6e	:	Onboard 82599ES NIC2 ROM		:01 = Enabled;00 = Disabled 
+0x71	:	Power Technology		:00 = Disabled;01 = Energy Efficient;02 = Custom
+0x72	:	Restore AC Power Loss		:00 = Power on;01 = Power Off;02 = Last State
+0x75	:	XHCIMode			:02 = Auto;01 = Enabled;00 = Disabled
+0x77	:	Boot Options Retry		:01 = Enabled;00 = Disabled
+0x78	:	Quiet Boot			:01 = Enabled;00 = Disabled
+0x7a	:	OnBoard I350 NIC3 Control	:01 = Enabled;00 = Disabled
+0x7b	:	OnBoard I350 NIC3 Rom		:01 = Enabled;00 = Disabled
+0x7c	:	OnBoard I350 NIC4 Control	:01 = Enabled;00 = Disabled
+0x7d	:	OnBoard I350 NIC4 Rom		:01 = Enabled;00 = Disabled
+0x7e	:	Onboard 82599EN NIC Control	:01 = Enabled;00 = Disabled
+0x7f	:	Onboard 82599EN NIC ROM		:01 = Enabled;00 = Disabled
+0x80	:	Terminal Type			:00 = VT100;01 = VT100+;02 = VT-UTF8;03 = ANSI
+0x81	:	Sharelink Network		:00 = Enable;01 = Disable
+0x84	:	Storage				:00 = Do not launch;01 = UEFI;02= Legacy
+0x86	:	Other PCI devices		:00 = Legacy;01 = UEFI
+0x89    :       X2APIC                          :00 = Enable;01 = Disabled

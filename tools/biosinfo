@@ -1,0 +1,376 @@
+#name:biosset.sh
+###########################################################################################
+#######rongjq@inspur.com                 
+######2016-7-10
+#####Grantely Bios set               
+############################################################################################
+#time:2015-10-28
+#version:V3.1
+#增加带外功能，编辑帮助菜�?新增lanplus接口
+
+#debug=1 will show ipmitool info
+debug=0
+
+
+#configure.txt biosset.sh
+#!/bin/bash
+PATH=$PATH:.
+
+#提示是否继续写入bios
+
+note=yes
+#具体命令
+
+#ipmitool raw 0x3e $cmd $offset $stat
+
+#dir=`pwd`
+dir=`echo $0 |sed 's/\/biosinfo//g'`
+#address
+offset=0
+#read or write
+read_cmd=0x21
+write_cmd=0x20
+#读写命令最后一字节
+
+read_stat=0x01
+write_stat=
+#写状态对应表中的序号
+
+write_stat_value=
+#allinfo
+strings=
+#bios term
+biositem=
+#value
+value0=( 1 2 3 4 5 6 7 8 9)
+#valueitem
+valueitem0=( 1 2 3 4 5 6 7 8 9)
+order=
+#判断是否是带外执�?
+IPMI=""
+first=""
+second=""
+
+which ipmitool 2>&1 > /dev/null 
+if [ $? -eq 1 ] ; then
+	echo "Please install ipmitool. Exiting update process." >> log.dat
+	exit 1;	
+fi
+
+
+usage()
+{
+ echo '
+1.configure.txt must be required to correspond to the BIOS version of the machine, Different items should be divided by ";" or ":"
+
+Example1:
+1. all read
+   1)#./biosinfo -all 
+   2)#./biosinfo -H 10.52.11.11 -U admin -P admin
+Example2: 
+0x1b:Energy Performance BIAS:00 = Performance;07 = Balanced Performance;08 = Balanced Power;0F = Power
+2.read:The 3 method can read Energy Performance BIAS  value.
+   1)#./biosinfo 0x1b                      
+   2)#./biosinfo "Energy Performance BIAS"
+   3)#./biosinfo "Balanc"  
+3.set or write:Set/writing also has a variety of ways, such as setting up to "Bablance Performance"
+   1)#./biosinfo 0x1b  "Balanced Performance"                   
+   2)#./biosinfo "Energy Performance BIAS" 07 
+   3)#./biosinfo 0x1b 07
+4.set or write :ipmis ip mode:
+   1)#./biosinfo -I lanplus -H 10.52.11.11 -U admin -P admin 0x1b  "Balanced Performance"
+   2)#./biosinfo -I lanplus -H 10.52.11.11 -U admin -P admin "Energy Performance BIAS" 07
+   3)#./biosinfo -I lanplus -H 10.52.11.11 -U admin -P admin "Energy Performance BIAS" 07
+ ' 
+ exit
+}
+
+
+default()
+{
+ cnt=`echo $1 |grep -i default|wc -l`
+   if [ $cnt -eq 1 ]
+     then
+     echo "The present Bios Value will be set defualt in 5s !!!"
+     sleep 5
+     #open bios change mode
+     ipmitool$IPMI raw 0x3a 0x1a 0x01 2>/dev/null >/dev/null
+             if [ $? -eq 0 ];then
+                    echo "Start bios change mode,and start modify!" |tee -a $dir/0.log
+           #  else  #SA5112M4 no support this function ,now
+           #         echo "Failed to start bios change mode!" |tee -a $dir/0.log
+           #          exit
+             fi
+     #
+     if [ $debug -eq 1 ];then
+     echo " ipmitoo$IPMI raw 0x3e 0x23 0x00 0x01 "
+     fi
+      ipmitool$IPMI raw 0x3e 0x23 0x00 0x01
+      if [ $? -eq 0 ]
+       then
+           echo "set default success,Please reboot!!"|tee -a $dir/cqtory.log
+      else
+          echo "failed or the present value already in default!!"
+      fi
+        #close bios change mode
+        ipmitool$IPMI raw 0x3a 0x1a 0x00 2>/dev/null >/dev/null
+       exit
+   fi
+
+} 
+pre()
+{ 
+  case $1 in
+    -H|-U|-P)
+      if [ $# -lt 7 ]
+       then
+       echo "Parameter missing"
+       usage
+       exit
+     fi 
+      ipmitool $1 $2 $3 $4 $5 $6 mc info >/dev/null
+      if [ $? -eq 0 ]
+        then
+        IPMI=" $1 $2 $3 $4 $5 $6"
+        first="$7"
+        second="$8"
+      else
+        exit
+      fi  
+    ;;
+   -h|-u|-p)
+      echo Please useage: $0 -I lanplus -H '$ip' -U '$user'  -P '$passwd' $7 $8
+      exit
+     ;;
+   -I)
+     if [ $# -lt 9 ]
+       then
+       echo "Parameter missing"
+       usage
+       exit
+     fi
+     ipmitool $1 $2 $3 $4 $5 $6 $7 $8 mc info >/dev/null
+      if [ $? -eq 0 ]
+        then
+        IPMI=" $1 $2 $3 $4 $5 $6 $7 $8"
+        first="$9"
+        second=${10}
+      else
+        exit
+      fi
+    ;;
+    "")
+      usage
+      ;;
+   -*)
+     usage
+    exit
+   ;;
+    *)
+     first="$1"
+     second="$2"
+     ;;
+  esac
+#####################################default detect###############
+   if [ "x$first" = "xdefault"  ] & [ "x$second" = "xyes"  ]  ;then
+     default "default"
+    #echo "default default"
+    exit
+  fi
+#############################################################
+  #cat configure.txt|grep -i $1 >search.txt
+  #当前值设置为default检�?default "$first"
+  #---start
+
+    cnt=`cat $dir/configure.txt | grep -i -c "$first"`
+     if [ $cnt -eq 1 ]
+      then
+       strings=`cat $dir/configure.txt|grep -i "$first"`    
+       #地址
+
+       offset="`echo $strings|awk -F : '{print $1}'` 0x00"
+       #bios选项
+
+       biositem="`echo $strings |awk -F : '{print $2}'`"
+       #返回�?
+       returnvalue="`echo $strings |awk -F : '{print $3}'`"
+#       echo revalue=$returnvalue
+       #返回值有效数�?
+       num=`echo $returnvalue|grep -o ';'|wc -l`
+       num=$(($num+1))
+       fin_sec=0 
+      #用于监视第二个参�?       #遍历可设置项，并分配入数�?
+       for ((i=1;i<=$num;i++))
+         do
+           s1=`echo $returnvalue|awk -v a=$i -F ';' '{print $a}'`;
+#          echo $s1
+           value0[$i]="`echo $s1|awk -F = '{print $1}'`" 
+           valueitem0[$i]="`echo $s1 |awk -F '=' '{print $2}'`"
+
+          #针对写入的第2个参�?查找该参数对应bios
+
+          case $# in
+            2|8|10)
+               cnt=`echo $s1 | grep -i -c "$second"`
+               #防止多个设置与第2个输入对�?
+               if [ $cnt -eq 1 ] 
+                    then
+                      write_stat_value=$i
+                      fin_sec=$(($fin_sec+1))
+                  fi
+              ;;
+            *)
+
+            ;;
+           esac
+           #第二个参数收集完�?
+       done
+      
+
+      #调试专用
+       # echo $strings
+#	for ((j=1;j<=$num;j++))
+#          do
+#           echo v2$j=${value0[$j]}
+#           echo v$j=${valueitem0[$j]}
+    
+#       done
+#       exit
+
+     else
+       if [ $cnt -eq 0 ]
+       then
+         echo "ERROR!! The "$first" is not in `cat $dir/configure.txt`
+ERROR!!! "$first" is not find!"
+         exit
+       else
+         cat $dir/configure.txt | grep -i -c "$first"
+         echo $1 too many item
+         exit
+       fi
+     fi
+}
+
+#读BIOS
+
+read_bios()
+{ if [ $debug -eq 1 ];then
+   echo "ipmitool $IPMI  raw 0x3e 0x21 $cmd $offset $read_stat"
+  fi
+       rm -rf $dir/0.log
+       ipmitool$IPMI raw 0x3e $read_cmd $offset $read_stat >$dir/0.log
+       if [ ! $? -eq 0 ]
+         then
+           # echo "test";
+           return
+           #exit
+       fi
+       Result="`cat $dir/0.log|awk '{print $2}'`"
+#       echo $Result
+       for ((j=1;j<=$num;j++))
+           do
+             if [ ${value0[$j]} == $Result ]
+               then
+                echo " $biositem is ${valueitem0[$j]}" |tee -a $dir/cqtory.log
+                find="ture"
+
+                #获取序号，为写入bios做准�?      
+                order=$j
+                break
+             else
+               find="no"
+             fi
+        done
+
+        #未有返回值变�?      
+       if [ $find == "no" ]
+          then
+             echo "read error!!! no $Result be fund;
+             Please Checek bios and BMC Version,Be sure BIOS4.0.8 and BMC4.5 UP 
+             or be sure the server support biosset！！
+             "
+             exit 
+        fi
+}
+#写设置BIOS
+
+write_bios()
+{
+ #读取Bios值获取当前设置order
+
+  read_bios "$1" >/dev/null
+  cmd=0x20
+  case $fin_sec in
+    1)
+#       echo $write_stat_value
+#       echo $order
+       if  [ "$write_stat_value" == "$order" ] 
+         then   
+           echo $biositem already is ${valueitem0[$order]},please check again!! 
+       else
+          write_stat=0x${value0[$write_stat_value]}
+          #open bios change mode
+          ipmitool$IPMI raw 0x3a 0x1a 0x01 2>/dev/null >/dev/null
+          if [ $? -eq 0 ];then
+            echo "Start bios change mode,and start modify!" |tee -a $dir/0.log
+           
+          #else  #SA5112M4 not suppot this lock ,as soon
+          #   echo "Failed to start bios change mode!" |tee -a $dir/0.log
+            
+          fi
+          if [ $debug -eq 1 ];then
+            echo "ipmitool$IPMI raw 0x3e $cmd $offset $write_stat" |tee -a $dir/0.log
+          fi
+          ipmitool$IPMI raw 0x3e $cmd $offset $write_stat
+          if [ ! $? -eq 0 ]
+            then
+               echo "Failed!! , This Maybe some error,please check bios and bmc version,be sure $biositem canbe set now!"|tee -a $dir/0.log
+          else
+               echo "sucess,$biositem is set to ${valueitem0[$write_stat_value]},
+Please reboot server!!"|tee -a $dir/0.log
+          fi 
+          #close bios change mode
+          ipmitool$IPMI raw 0x3a 0x1a 0x00 2>/dev/null >/dev/null
+       fi
+      ;;
+    0)
+       echo "no $2 be found,the second must be in $returnvalue"
+       #usage
+      ;;
+
+
+    *)
+
+       echo "too much $2 ,must be in $returnvalue"
+       #usage
+      ;;
+   esac
+
+}
+
+
+  
+ #main
+ pre "$@"
+
+ case $# in
+1|7|9)
+  read_bios "$first"
+;;
+2|8|10)
+  write_bios "$first" "$second"
+;;
+*)
+ usage
+;;
+esac
+
+
+
+#main
+
+
+
+
+rm -rf $dir/0.log
+rm -rf $dir/cqtory.log

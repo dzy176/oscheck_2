@@ -1,0 +1,19 @@
+ipmitool -nw -ip 10.10.38.207 -u admin -p admin fru list
+FRU Device Description : Builtin FRU Device (ID 0)
+ Chassis Type          : Rack Mount Chassis
+ Chassis Part Number   : 0
+ Chassis Serial        : 00
+ Chassis Extra         : NULL
+ Board Mfg Date        : Fri Nov 21 01:22:00 2014
+ Board Mfg             : Inspur
+ Board Product         : YZMB-00370-109
+ Board Serial          : 0
+ Board Part Number     : SA5212M4
+ Product Manufacturer  : Inspur
+ Product Name          : SA5212M4
+ Product Part Number   : 0
+ Product Version       : 01
+ Product Serial        : 816433520
+ Product Asset Tag     : G-1210-12095500
+
+

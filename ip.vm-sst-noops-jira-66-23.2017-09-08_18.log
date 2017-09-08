@@ -1,0 +1,11 @@
+Channel 1 -dicated IP Address Source       : Static Address
+IP Address              : 10.10.38.207
+Subnet Mask             : 255.255.255.0
+MAC Address             : 6c:92:bf:32:33:bb
+Default Gateway IP      : 10.10.38.250
+Channel 8 -Sharelink IP Address Source       : DHCP Address
+IP Address              : 0.0.0.0
+Subnet Mask             : 0.0.0.0
+MAC Address             : 6c:92:bf:32:33:ba
+Default Gateway IP      : 0.0.0.0
+
